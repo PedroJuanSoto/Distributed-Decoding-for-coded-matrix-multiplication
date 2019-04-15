@@ -74,10 +74,10 @@ if rank == size-1:               # This is the master's task
     finish_time = MPI.Wtime()
     total_time = finish_time - start_time
     print(total_time)
-    # print("yepa")
-    # print(np.rint(c))
-    # print("qepa")
-    # print(np.einsum('iksr,kjrt->ijst', np.arange(m*p*x*y).reshape(m,p,x,y)+1 , np.arange(p*n*y*z).reshape(p,n,y,z)+m*p*x*y+1))
+    print("yepa")
+    print(np.rint(c))
+    print("qepa")
+    print(np.einsum('iksr,kjrt->ijst', np.arange(m*p*x*y).reshape(m,p,x,y)+1 , np.arange(p*n*y*z).reshape(p,n,y,z)+m*p*x*y+1))
 
 
 

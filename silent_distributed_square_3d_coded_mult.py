@@ -7,7 +7,7 @@ comm = MPI.COMM_WORLD # the default communicator which consists of all the proce
 rank = comm.Get_rank() # Returns the process ID of the current process
 size = comm.Get_size() # Returns the number of processes
 
-matrix_size_parameter = 2**6
+matrix_size_parameter = 2**4
 
 worker_size_parameter = 2
 
@@ -68,6 +68,11 @@ if rank == size-1:               # This is the master's task
         comm.send(i, dest=place_to_rank[i], tag=2)
     for i in range(fault_tolerance):        #order the workers finish in
         comm.send(place_to_rank, dest=place_to_rank[i], tag=3)
+    for i in range(size - fault_tolerance - 1):
+        req = comm.irecv(source=MPI.ANY_SOURCE, tag=1)  #That is the purpose of MPI.ANY_SOURCE
+        data = req.wait()
+        place_to_rank.append(int(data))
+        comm.send(i+fault_tolerance, dest=place_to_rank[i+fault_tolerance], tag=2)
     finalresult = np.empty([fault_tolerance,x,z],dtype=float)
     for i in range(fault_tolerance):        #order the workers finish in
         finalresult[i] = comm.recv(source=place_to_rank[i], tag=3+3*fault_tolerance)
@@ -78,10 +83,10 @@ if rank == size-1:               # This is the master's task
     finish_time = MPI.Wtime()
     total_time = finish_time - start_time
     print(total_time)
-    # print("yepa")
-    # print(np.rint(c))
-    # print("qepa")
-    # print(np.einsum('iksr,kjrt->ijst', np.arange(m*p*x*y).reshape(m,p,x,y)+1 , np.arange(p*n*y*z).reshape(p,n,y,z)+m*p*x*y+1))
+    print("yepa")
+    print(np.rint(c))
+    print("qepa")
+    print(np.einsum('iksr,kjrt->ijst', np.arange(m*p*x*y).reshape(m,p,x,y)+1 , np.arange(p*n*y*z).reshape(p,n,y,z)+m*p*x*y+1))
 
 
 
@@ -96,6 +101,8 @@ else:
     req = comm.isend(rank, dest=size-1, tag=1)        #The worker then sends the results back
     req.wait()                                        #with his rank so the master can identify him
     my_place = comm.recv(source=size-1, tag=2)
+    if my_place >= fault_tolerance:
+        exit()
     place_to_rank = comm.recv(source=size-1, tag=3)
     my_row = np.fromfunction(lambda i  :  rank**i, (fault_tolerance,),dtype=float)
     acummalator = result
