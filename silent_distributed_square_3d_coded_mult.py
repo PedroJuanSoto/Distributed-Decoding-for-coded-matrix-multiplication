@@ -7,7 +7,7 @@ comm = MPI.COMM_WORLD # the default communicator which consists of all the proce
 rank = comm.Get_rank() # Returns the process ID of the current process
 size = comm.Get_size() # Returns the number of processes
 
-matrix_size_parameter = 2^16
+matrix_size_parameter = 2**6
 
 worker_size_parameter = 2
 
