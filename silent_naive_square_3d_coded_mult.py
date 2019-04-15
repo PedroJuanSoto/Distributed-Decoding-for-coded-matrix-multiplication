@@ -42,12 +42,6 @@ def bcode(a,i):          #This is the encoding function for the "B" matrix or
             z = z + a[j][k]*i**(1-j+4*k)
     return z
 
-def psuedo_rank(place_rank_translator, my_rank):
-    for i,x in enumerate(place_rank_translator):
-        if x == my_rank:
-            return i
-
-
 
 if rank == size-1:               # This is the master's task
     a = np.arange(m*p*x*y).reshape(m,p,x,y)+1 #This is the A matrix
@@ -59,17 +53,19 @@ if rank == size-1:               # This is the master's task
          req = comm.Isend(submatrix, dest=i, tag=0)
          req.Wait()                  #The master now broadcasts the tasks to the workers
 
+    results = np.empty([fault_tolerance,x,z],dtype=float)
     place_to_rank = []                      #The worker now recieves the tasks in whatever
     for i in range(fault_tolerance):        #order the workers finish in
         req = comm.irecv(source=MPI.ANY_SOURCE, tag=1)  #That is the purpose of MPI.ANY_SOURCE
         data = req.wait()
-        place_to_rank.append(int(data))
-        comm.send(i, dest=place_to_rank[i], tag=2)
-    for i in range(fault_tolerance):        #order the workers finish in
-        comm.send(place_to_rank, dest=place_to_rank[i], tag=3)
+        results[i] = data["result"]
+        place_to_rank.append(int(data["rank"]))
+    decoder = np.fromfunction(np.vectorize(lambda i ,j :  place_to_rank[i]**j), [fault_tolerance,fault_tolerance],dtype=int)
+
     finalresult = np.empty([fault_tolerance,x,z],dtype=float)
-    for i in range(fault_tolerance):        #order the workers finish in
-        finalresult[i] = comm.recv(source=place_to_rank[i], tag=3+3*fault_tolerance)
+    finalresult = np.einsum('ik,k...->i...', np.linalg.inv(decoder), results)
+
+
     c = np.empty([m,n,x,z],dtype=float)                           #that the master must solve to decode the data. The master decodes the data by performing
     for i in range(m):                                       #equations. the indices 1,3,5,7 contain all of the desired data, the rest is trash
         for j in range(n):
@@ -81,47 +77,11 @@ if rank == size-1:               # This is the master's task
 
 
 
-
-
-
 else:
     submatrix = np.empty([2,x,y],dtype=float)           #The worker recieves the task from the master and
     req = comm.Irecv(submatrix ,source=size-1, tag=0) #performs the multiplication assigned to him
     req.Wait()
     result = np.matmul(submatrix[0],submatrix[1])
-    req = comm.isend(rank, dest=size-1, tag=1)        #The worker then sends the results back
+    data = {'result': result, 'rank': rank}
+    req = comm.isend(data, dest=size-1, tag=1)        #The worker then sends the results back
     req.wait()                                        #with his rank so the master can identify him
-    my_place = comm.recv(source=size-1, tag=2)
-    place_to_rank = comm.recv(source=size-1, tag=3)
-    my_row = np.fromfunction(lambda i  :  rank**i, (fault_tolerance,),dtype=float)
-    acummalator = result
-    for i in range(fault_tolerance):
-        if i < my_place:
-            req = comm.irecv(source=place_to_rank[i], tag=3+i)
-            new_row = req.wait()
-            req = comm.irecv(source=place_to_rank[i], tag=3+i+fault_tolerance)
-            new_mat = req.wait()
-            acummalator = acummalator - my_row[i]*new_mat
-            my_row = my_row - my_row[i]*new_row
-        if i == my_place:
-            acummalator = acummalator/my_row[i]
-            my_row = my_row/my_row[i]
-            for j in range(fault_tolerance-my_place-1):
-                req = comm.isend(my_row, dest=place_to_rank[my_place+j+1], tag=3+i)
-                req.wait()
-                req = comm.isend(acummalator, dest=place_to_rank[my_place+j+1], tag=3+i+fault_tolerance)
-                req.wait()
-    for k in range(fault_tolerance):
-        i=fault_tolerance-k-1
-        if i > my_place:
-            req = comm.irecv(source=place_to_rank[i], tag=3+i+2*fault_tolerance)
-            new_mat = req.wait()
-            acummalator = acummalator - my_row[i]*new_mat
-        if i == my_place :
-            if i != fault_tolerance-1:
-                acummalator = acummalator/my_row[i]
-            for j in range(my_place):
-                req = comm.isend(acummalator, dest=place_to_rank[j], tag=3+i+2*fault_tolerance)
-                req.wait()
-    req = comm.isend(acummalator, dest=size-1, tag=3+3*fault_tolerance)        #The worker then sends the results back
-    req.wait()

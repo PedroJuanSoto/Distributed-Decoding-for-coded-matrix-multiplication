@@ -7,17 +7,20 @@ comm = MPI.COMM_WORLD # the default communicator which consists of all the proce
 rank = comm.Get_rank() # Returns the process ID of the current process
 size = comm.Get_size() # Returns the number of processes
 
-fault_tolerance = 9
+matrix_size_parameter = 16
 
-Left_matrix_real_size_dimension_one = 16
-Left_matrix_real_size_dimension_two = 16
-Right_matrix_real_size_dimension_one = 16
-Right_matrix_real_size_dimension_two = 16
+worker_size_parameter = 2
 
+Left_matrix_real_size_dimension_one = matrix_size_parameter
+Left_matrix_real_size_dimension_two = matrix_size_parameter
+Right_matrix_real_size_dimension_one = matrix_size_parameter
+Right_matrix_real_size_dimension_two = matrix_size_parameter
 
-m=2
-p=2
-n=2
+m=worker_size_parameter
+p=worker_size_parameter
+n=worker_size_parameter
+
+fault_tolerance = m*p*n+p-1
 
 x=Left_matrix_real_size_dimension_one//m
 y=Left_matrix_real_size_dimension_two//p
