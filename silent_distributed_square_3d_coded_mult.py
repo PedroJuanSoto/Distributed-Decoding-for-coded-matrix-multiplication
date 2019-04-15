@@ -7,7 +7,7 @@ comm = MPI.COMM_WORLD # the default communicator which consists of all the proce
 rank = comm.Get_rank() # Returns the process ID of the current process
 size = comm.Get_size() # Returns the number of processes
 
-matrix_size_parameter = 16
+matrix_size_parameter = 2^16
 
 worker_size_parameter = 2
 
@@ -50,6 +50,7 @@ def psuedo_rank(place_rank_translator, my_rank):
 
 
 if rank == size-1:               # This is the master's task
+    start_time = MPI.Wtime()
     a = np.arange(m*p*x*y).reshape(m,p,x,y)+1 #This is the A matrix
     b = np.arange(p*n*y*z).reshape(p,n,y,z)+m*p*x*y+1#This is the B matrix
     blockmatrix =np.empty([size-1,2,x,y],dtype=float) #Here the master is encoding the tasks
@@ -74,10 +75,13 @@ if rank == size-1:               # This is the master's task
     for i in range(m):                                       #equations. the indices 1,3,5,7 contain all of the desired data, the rest is trash
         for j in range(n):
             c[i][j]=finalresult[p-1+i*p+j*p*m]
-    print("yepa")
-    print(np.rint(c))
-    print("qepa")
-    print(np.einsum('iksr,kjrt->ijst', np.arange(m*p*x*y).reshape(m,p,x,y)+1 , np.arange(p*n*y*z).reshape(p,n,y,z)+m*p*x*y+1))
+    finish_time = MPI.Wtime()
+    total_time = finish_time - start_time
+    print(total_time)
+    # print("yepa")
+    # print(np.rint(c))
+    # print("qepa")
+    # print(np.einsum('iksr,kjrt->ijst', np.arange(m*p*x*y).reshape(m,p,x,y)+1 , np.arange(p*n*y*z).reshape(p,n,y,z)+m*p*x*y+1))
 
 
 
