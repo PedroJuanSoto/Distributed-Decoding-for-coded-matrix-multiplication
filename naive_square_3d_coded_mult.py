@@ -8,28 +8,34 @@ rank = comm.Get_rank() # Returns the process ID of the current process
 size = comm.Get_size() # Returns the number of processes
 
 fault_tolerance = 9
-fault_tolerance = 9
+
+Left_matrix_real_size_dimension_one = 16
+Left_matrix_real_size_dimension_two = 16
+Right_matrix_real_size_dimension_one = 16
+Right_matrix_real_size_dimension_two = 16
+
+
 m=2
 p=2
 n=2
 
-x=2
-y=2
-z=2
+x=Left_matrix_real_size_dimension_one//m
+y=Left_matrix_real_size_dimension_two//p
+z=Right_matrix_real_size_dimension_two//n
 # print("numpyver",np.__version__)
 
 
 def acode(a,i):           #This is the encoding function for the "A" matrix or
     z = 0                 #the left matrix that is going to be multiplied
-    for j in range(2):
-        for k in range(2):
+    for j in range(p):
+        for k in range(m):
             z = z + a[k][j]*i**(j+2*k)
     return z
 
 def bcode(a,i):          #This is the encoding function for the "B" matrix or
     z = 0                #the right matrix that is going to be multiplied
-    for j in range(2):
-        for k in range(2):
+    for j in range(p):
+        for k in range(n):
             z = z + a[j][k]*i**(1-j+4*k)
     return z
 
@@ -67,17 +73,19 @@ if rank == size-1:               # This is the master's task
 
 
     print(np.rint(finalresult))
-    c = np.empty([2,2,2,2],dtype=float)                           #that the master must solve to decode the data. The master decodes the data by performing
-    for i in range(2):                                       #equations. the indices 1,3,5,7 contain all of the desired data, the rest is trash
-        for j in range(2):
-            c[i][j]=finalresult[2-1+i*2+j*2*2]
-    print("yepa",np.rint(c))
+    c = np.empty([m,n,x,z],dtype=float)                           #that the master must solve to decode the data. The master decodes the data by performing
+    for i in range(m):                                       #equations. the indices 1,3,5,7 contain all of the desired data, the rest is trash
+        for j in range(n):
+            c[i][j]=finalresult[p-1+i*p+j*p*m]
+    print("yepa")
+    print(np.rint(c))
+    print("qepa")
     print(np.einsum('iksr,kjrt->ijst', np.arange(m*p*x*y).reshape(m,p,x,y)+1 , np.arange(p*n*y*z).reshape(p,n,y,z)+m*p*x*y+1))
 
 
 
 else:
-    submatrix = np.empty([2,2,2],dtype=float)           #The worker recieves the task from the master and
+    submatrix = np.empty([2,x,y],dtype=float)           #The worker recieves the task from the master and
     req = comm.Irecv(submatrix ,source=size-1, tag=0) #performs the multiplication assigned to him
     req.Wait()
     print("takaka", submatrix)
