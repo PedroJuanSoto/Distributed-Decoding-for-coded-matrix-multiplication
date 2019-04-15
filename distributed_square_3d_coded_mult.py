@@ -89,22 +89,6 @@ if rank == size-1:               # This is the master's task
 
 
 
-    # decoder = np.fromfunction(np.vectorize(lambda i ,j :  place_to_rank[i]**j), [fault_tolerance,fault_tolerance],dtype=int)
-    #
-    # finalresult = np.empty([fault_tolerance,x,z],dtype=float)
-    # finalresult = np.einsum('ik,k...->i...', np.linalg.inv(decoder), results)
-    #
-    #
-    # print(np.rint(finalresult))
-    # c = np.empty([m,n,x,z],dtype=float)                           #that the master must solve to decode the data. The master decodes the data by performing
-    # for i in range(m):                                       #equations. the indices 1,3,5,7 contain all of the desired data, the rest is trash
-    #     for j in range(n):
-    #         c[i][j]=finalresult[p-1+i*p+j*p*m]
-    # print("yepa")
-    # print(np.rint(c))
-    # print("qepa")
-    # print(np.einsum('iksr,kjrt->ijst', np.arange(m*p*x*y).reshape(m,p,x,y)+1 , np.arange(p*n*y*z).reshape(p,n,y,z)+m*p*x*y+1))
-
 
 
 else:
