@@ -8,6 +8,27 @@ do
     mpirun -np 10 python3 silent_distributed_square_3d_coded_mult.py 2 2 2 >> output_for_distributed10.txt
 done
 
+max=10
+for (( i=2; i <= $max; ++i ))
+do
+    mpirun -np 11 python3 silent_distributed_square_3d_coded_mult.py 2 2 2 >> output_for_distributed11.txt
+done
+
+
+max=10
+for (( i=2; i <= $max; ++i ))
+do
+    mpirun -np 12 python3 silent_distributed_square_3d_coded_mult.py 2 2 2 >> output_for_distributed12.txt
+done
+
+
+max=10
+for (( i=2; i <= $max; ++i ))
+do
+    mpirun -np 13 python3 silent_distributed_square_3d_coded_mult.py 2 2 2 >> output_for_distributed13.txt
+done
+
+
 
 max=10
 for (( i=2; i <= $max; ++i ))
