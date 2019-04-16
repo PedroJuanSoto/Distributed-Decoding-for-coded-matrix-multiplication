@@ -34,7 +34,7 @@ do
     mpirun -np 20 python3 silent_naive_square_3d_coded_mult.py 2 4 2 >> output_for_naive20.txt
 done
 
-max=5
+max=6
 for (( i=2; i <= $max; ++i ))
 do
     mpirun -np 20 python3 silent_naive_square_3d_coded_mult.py 3 2 3 >> output_for_naive20.txt
