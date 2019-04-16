@@ -2,6 +2,7 @@
 
 from mpi4py import MPI
 import numpy as np
+import sys
 
 comm = MPI.COMM_WORLD # the default communicator which consists of all the processors
 rank = comm.Get_rank() # Returns the process ID of the current process
@@ -11,14 +12,15 @@ matrix_size_parameter = 2**6
 
 worker_size_parameter = 2
 
-Left_matrix_real_size_dimension_one = matrix_size_parameter
-Left_matrix_real_size_dimension_two = matrix_size_parameter
-Right_matrix_real_size_dimension_one = matrix_size_parameter
-Right_matrix_real_size_dimension_two = matrix_size_parameter
+m= int(sys.argv[1])
+p= int(sys.argv[2])
+n= int(sys.argv[3])
 
-m=worker_size_parameter
-p=worker_size_parameter
-n=worker_size_parameter
+Left_matrix_real_size_dimension_one = (matrix_size_parameter//2)*m
+Left_matrix_real_size_dimension_two = (matrix_size_parameter//2)*p
+Right_matrix_real_size_dimension_one = (matrix_size_parameter//2)*p
+Right_matrix_real_size_dimension_two = (matrix_size_parameter//2)*n
+
 
 fault_tolerance = m*p*n+p-1
 
@@ -66,7 +68,7 @@ if rank == size-1:               # This is the master's task
         data = req.wait()
         place_to_rank.append(int(data))
         comm.send(i, dest=place_to_rank[i], tag=2)
-    for i in range(fault_tolerance):       
+    for i in range(fault_tolerance):
         comm.send(place_to_rank, dest=place_to_rank[i], tag=3)
     for i in range(size - fault_tolerance - 1):
         req = comm.irecv(source=MPI.ANY_SOURCE, tag=1)
@@ -83,10 +85,12 @@ if rank == size-1:               # This is the master's task
     finish_time = MPI.Wtime()
     total_time = finish_time - start_time
     print(total_time)
-    print("yepa")
-    print(np.rint(c))
-    print("qepa")
-    print(np.einsum('iksr,kjrt->ijst', np.arange(m*p*x*y).reshape(m,p,x,y)+1 , np.arange(p*n*y*z).reshape(p,n,y,z)+m*p*x*y+1))
+    # print("yepa")
+    # print(np.rint(c))
+    # print("qepa")
+    # print(np.einsum('iksr,kjrt->ijst', np.arange(m*p*x*y).reshape(m,p,x,y)+1 , np.arange(p*n*y*z).reshape(p,n,y,z)+m*p*x*y+1))
+    # print("yuppa")
+    # print(np.rint(finalresult))
 
 
 

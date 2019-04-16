@@ -2,6 +2,8 @@
 
 from mpi4py import MPI
 import numpy as np
+import sys
+
 
 comm = MPI.COMM_WORLD # the default communicator which consists of all the processors
 rank = comm.Get_rank() # Returns the process ID of the current process
@@ -11,21 +13,21 @@ matrix_size_parameter = 2**6
 
 worker_size_parameter = 2
 
-Left_matrix_real_size_dimension_one = matrix_size_parameter
-Left_matrix_real_size_dimension_two = matrix_size_parameter
-Right_matrix_real_size_dimension_one = matrix_size_parameter
-Right_matrix_real_size_dimension_two = matrix_size_parameter
+m= int(sys.argv[1])
+p= int(sys.argv[2])
+n= int(sys.argv[3])
 
-m=worker_size_parameter
-p=worker_size_parameter
-n=worker_size_parameter
+Left_matrix_real_size_dimension_one = (matrix_size_parameter//2)*m
+Left_matrix_real_size_dimension_two = (matrix_size_parameter//2)*p
+Right_matrix_real_size_dimension_one = (matrix_size_parameter//2)*p
+Right_matrix_real_size_dimension_two = (matrix_size_parameter//2)*n
+
 
 fault_tolerance = m*p*n+p-1
 
 x=Left_matrix_real_size_dimension_one//m
 y=Left_matrix_real_size_dimension_two//p
 z=Right_matrix_real_size_dimension_two//n
-
 
 
 def acode(a,i):           #This is the encoding function for the "A" matrix or
@@ -67,17 +69,19 @@ if rank == size-1:               # This is the master's task
     finalresult = np.einsum('ik,k...->i...', np.linalg.inv(decoder), results)
 
 
-    c = np.empty([m,n,x,z],dtype=np.double)                          
+    c = np.empty([m,n,x,z],dtype=np.double)
     for i in range(m):
         for j in range(n):
             c[i][j]=finalresult[p-1+i*p+j*p*m]
     finish_time = MPI.Wtime()
     total_time = finish_time - start_time
     print(total_time)
-    print("yepa")
-    print(np.rint(c))
-    print("qepa")
-    print(np.einsum('iksr,kjrt->ijst', np.arange(m*p*x*y).reshape(m,p,x,y)+1 , np.arange(p*n*y*z).reshape(p,n,y,z)+m*p*x*y+1))
+    # print("yepa")
+    # print(np.rint(c))
+    # print("qepa")
+    # print(np.einsum('iksr,kjrt->ijst', np.arange(m*p*x*y).reshape(m,p,x,y)+1 , np.arange(p*n*y*z).reshape(p,n,y,z)+m*p*x*y+1))
+    # print("yuppa")
+    # print(np.rint(finalresult))
 
 
 
